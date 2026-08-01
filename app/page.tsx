@@ -183,9 +183,15 @@ export default function Home() {
           <button className={`more-button ${character === "HORSE" ? "more-horse" : "more-books"}`} type="button" onClick={collect} aria-label={`Add more ${character.toLowerCase()} and increase power`}>
             <span>{moreLabel}</span><small>INCREASE POWER</small>
           </button>
-          {recruitAvailable && <button className={`recruit-button ${character === "HORSE" ? "more-horse" : "more-books"}`} type="button" onClick={recruitCompanion}>
+          <button
+            className={`recruit-button ${character === "HORSE" ? "more-horse" : "more-books"}`}
+            type="button"
+            onClick={recruitCompanion}
+            disabled={!recruitAvailable}
+            aria-label={recruitAvailable ? `${recruitLabel}, costs 50 power` : `${recruitLabel} locked: requires 50 power`}
+          >
             <span>{recruitLabel}</span><small>COSTS 50 POWER · MAKES POWER ITSELF</small>
-          </button>}
+          </button>
         </section>
       )}
       <div className="reward-layer" aria-live="polite" aria-atomic="true">
