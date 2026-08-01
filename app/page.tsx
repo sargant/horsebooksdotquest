@@ -60,6 +60,16 @@ type Character = "HORSE" | "BOOKS";
 type SavedGame = { character: Character; power: number; companions: number };
 type FightResult = { opponentCount: number; playerCount: number; winner: "player" | "opponent" | "draw"; reason: string };
 const saveKey = "horsebooks.quest.save.v1";
+const armyPositions = [
+  { left: "9%", top: "20%" },
+  { left: "77%", top: "13%" },
+  { left: "3%", top: "58%" },
+  { left: "85%", top: "58%" },
+  { left: "19%", top: "2%" },
+  { left: "67%", top: "1%" },
+  { left: "14%", top: "70%" },
+  { left: "74%", top: "70%" },
+];
 
 export default function Home() {
   const [screen, setScreen] = useState<"landing" | "choose" | "game" | "result">("landing");
@@ -76,7 +86,7 @@ export default function Home() {
   useEffect(() => {
     const canvas = document.querySelector<HTMLCanvasElement>("#logo");
     if (canvas) drawLogo(canvas);
-  }, []);
+  }, [screen]);
 
   useEffect(() => {
     try {
@@ -244,13 +254,21 @@ export default function Home() {
         <section className="play-screen" aria-labelledby="character-title">
           <p className="play-kicker">YOUR CHOSEN CHARACTER</p>
           <div className="character-card">
-            <span className="character-emoji" aria-hidden="true">{characterEmoji}</span>
-            {companions > 1 && (
-              <span className="character-miasma" aria-hidden="true">
-                <span className="miasma-haze" />
-                <span className="miasma-emoji">{characterEmoji}</span>
-              </span>
-            )}
+            <div className="character-army" aria-hidden="true">
+              <span className="character-emoji">{characterEmoji}</span>
+              {Array.from({ length: Math.max(0, companions - 1) }, (_, index) => {
+                const position = armyPositions[index % armyPositions.length];
+                return (
+                  <span
+                    className="army-member"
+                    style={{ left: position.left, top: position.top, animationDelay: `${-index * 0.57}s` }}
+                    key={index}
+                  >
+                    {characterEmoji}
+                  </span>
+                );
+              })}
+            </div>
             <h1 id="character-title">{character}</h1>
             <p>{character === "HORSE" ? "BIG ANIMAL. LITTLE THOUGHT." : "MANY PAPERS. NO LEGS."}</p>
           </div>
@@ -264,7 +282,7 @@ export default function Home() {
             <small>{companions === 0 ? "NO AUTOMATIC POWER. SAD." : `+${companions} POWER EVERY 5 SECONDS.`}</small>
           </div>
           <button className={`more-button ${character === "HORSE" ? "more-horse" : "more-books"}`} type="button" onClick={collect} aria-label={`Increase ${character.toLowerCase()} power`}>
-            <span>{moreLabel}</span><small>FOR ENTITY</small>
+            <span>{moreLabel}</span><small>FOR {character === "HORSE" ? "HORSES" : "BOOKS"}</small>
           </button>
           <button
             className={`recruit-button ${character === "HORSE" ? "more-horse" : "more-books"}`}
@@ -298,14 +316,14 @@ export default function Home() {
           {fightResult?.winner === "player" ? (
             <button className="start-again-button" type="button" onClick={startAgain}><span>START AGAIN</span><small>ALL PROGRESS WAS HEROICALLY ERASED</small></button>
           ) : (
-            <button className="start-again-button" type="button" onClick={() => setScreen("game")}><span>FIGHT AGAIN</span><small>THE WAR WAS A DRAWING BOARD</small></button>
+            <button className="start-again-button" type="button" onClick={startAgain}><span>FIGHT AGAIN</span></button>
           )}
         </section>
       )}
       <div className="reward-layer" aria-live="polite" aria-atomic="true">
         {rewards.map((reward) => <span className={`reward-pop ${reward.kind === "loot" ? "loot-pop" : reward.kind === "unit" ? "unit-pop" : "credit-pop"}`} key={reward.id} style={{ left: `${reward.x}%`, top: `${reward.y}%` }}>{reward.label}</span>)}
       </div>
-      <div className="ground" aria-hidden="true"><span className="tuft tuft-a">♠</span><span className="tuft tuft-b">♠</span><span className="tuft tuft-c">♠</span><span className="rock">◆</span><span className="daisy">✦</span></div>
+      <div className="ground" aria-hidden="true" />
     </main>
   );
 }
