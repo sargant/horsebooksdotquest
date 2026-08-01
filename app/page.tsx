@@ -58,15 +58,18 @@ function drawLogo(canvas: HTMLCanvasElement) {
 type Reward = { id: number; label: string; x: number; y: number; kind?: "loot" | "unit" };
 type Character = "HORSE" | "BOOKS";
 type SavedGame = { character: Character; power: number; companions: number };
+type FightResult = { opponentCount: number; playerCount: number; winner: "player" | "opponent" | "draw"; reason: string };
 const saveKey = "horsebooks.quest.save.v1";
 
 export default function Home() {
-  const [screen, setScreen] = useState<"landing" | "choose" | "game">("landing");
+  const [screen, setScreen] = useState<"landing" | "choose" | "game" | "result">("landing");
   const [character, setCharacter] = useState<Character | null>(null);
   const [power, setPower] = useState(0);
   const [companions, setCompanions] = useState(0);
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [hasLoadedSave, setHasLoadedSave] = useState(false);
+  const [wonWar, setWonWar] = useState(false);
+  const [fightResult, setFightResult] = useState<FightResult | null>(null);
   const lastProductionTick = useRef<number | null>(null);
   const lastSavedAt = useRef(0);
 
@@ -94,7 +97,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!hasLoadedSave || !character) return;
+    if (!hasLoadedSave || !character || wonWar) return;
     const now = Date.now();
     if (now - lastSavedAt.current < 1000) return;
     try {
@@ -109,6 +112,7 @@ export default function Home() {
     setCharacter(side);
     setPower(0);
     setCompanions(0);
+    setWonWar(false);
     setScreen("game");
   }
 
@@ -156,12 +160,51 @@ export default function Home() {
     window.setTimeout(() => setRewards((current) => current.filter((reward) => reward.id !== id)), 1250);
   }
 
+  function goToWar() {
+    if (!character || companions <= 1) return;
+
+    // A vaguely fair army has 80–120% as many things as you. Rounding makes tiny armies hilariously tense.
+    const opponentCount = Math.max(1, Math.round(companions * (0.8 + Math.random() * 0.4)));
+    const winner = companions > opponentCount ? "player" : companions < opponentCount ? "opponent" : "draw";
+    const opposingCharacter = character === "HORSE" ? "BOOKS" : "HORSES";
+    const playerWon = winner === "player";
+    const opponentWon = winner === "opponent";
+
+    setFightResult({
+      playerCount: companions,
+      opponentCount,
+      winner,
+      reason: playerWon
+        ? character === "HORSE" ? "HORSE IS BIG ANIMAL." : "HORSES ARE SCARED AND DIE EASY."
+        : opponentWon
+          ? character === "HORSE" ? "HORSES ARE SCARED AND DIE EASY." : "HORSE IS BIG ANIMAL."
+          : `${character} AND ${opposingCharacter} HAVE REACHED A POINTLESS STALEMATE.`,
+    });
+    if (playerWon) {
+      try { window.localStorage.removeItem(saveKey); } catch { /* The browser may retain the shame. */ }
+      setWonWar(true);
+    }
+    setScreen("result");
+  }
+
+  function startAgain() {
+    try { window.localStorage.removeItem(saveKey); } catch { /* A new quest may still begin. */ }
+    setCharacter(null);
+    setPower(0);
+    setCompanions(0);
+    setFightResult(null);
+    setWonWar(false);
+    setScreen("landing");
+  }
+
   const characterEmoji = character === "HORSE" ? "🐴" : "📚";
   const moreLabel = "MORE POWER";
   const companionLabel = character === "HORSE" ? "HORSES" : "BOOKS";
   const recruitLabel = character === "HORSE" ? "GET HORSE" : "GET BOOK";
   const roundedPower = Math.floor(power);
   const recruitAvailable = power >= 50;
+  const canFight = companions > 1;
+  const opponentLabel = character === "HORSE" ? "BOOKS" : "HORSES";
   // Deliberately do not cap this. More than 100 POWER is allowed to escape.
   const meterWidth = power;
 
@@ -197,7 +240,7 @@ export default function Home() {
           </div>
           <p className="choice-note">THIS DECISION IS FINAL, EXCEPT IT IS NOT SAVED ANYWHERE.</p>
         </section>
-      ) : (
+      ) : screen === "game" ? (
         <section className="play-screen" aria-labelledby="character-title">
           <p className="play-kicker">YOUR CHOSEN CHARACTER</p>
           <div className="character-card">
@@ -226,6 +269,31 @@ export default function Home() {
           >
             <span>{recruitLabel}</span><small>COSTS 50 POWER · MAKES POWER ITSELF</small>
           </button>
+          <button
+            className="fight-button"
+            type="button"
+            onClick={goToWar}
+            disabled={!canFight}
+            aria-label={canFight ? `Fight ${opponentLabel.toLowerCase()}` : `Fight ${opponentLabel.toLowerCase()} locked: requires more than one entity`}
+          >
+            <span>FIGHT {opponentLabel}</span><small>GO TO WAR</small>
+          </button>
+        </section>
+      ) : (
+        <section className="result-screen" aria-labelledby="result-title">
+          <p className="play-kicker">THE FINAL SCREEN</p>
+          <span className="result-emoji" aria-hidden="true">{fightResult?.winner === "player" ? "🏆" : fightResult?.winner === "opponent" ? "💀" : "⚔️"}</span>
+          <h1 id="result-title">{fightResult?.winner === "player" ? "YOU WIN" : fightResult?.winner === "opponent" ? "YOU LOSE" : "DRAW"}</h1>
+          <div className="war-counts" aria-label={`You had ${fightResult?.playerCount ?? 0}; opponent had ${fightResult?.opponentCount ?? 0}`}>
+            <div><span>YOUR {character}</span><strong>{fightResult?.playerCount}</strong></div>
+            <div><span>THEIR {opponentLabel}</span><strong>{fightResult?.opponentCount}</strong></div>
+          </div>
+          <p className="war-reason">{fightResult?.reason}</p>
+          {fightResult?.winner === "player" ? (
+            <button className="start-again-button" type="button" onClick={startAgain}><span>START AGAIN</span><small>ALL PROGRESS WAS HEROICALLY ERASED</small></button>
+          ) : (
+            <button className="start-again-button" type="button" onClick={() => setScreen("game")}><span>FIGHT AGAIN</span><small>THE WAR WAS A DRAWING BOARD</small></button>
+          )}
         </section>
       )}
       <div className="reward-layer" aria-live="polite" aria-atomic="true">
