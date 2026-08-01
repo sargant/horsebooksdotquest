@@ -229,30 +229,27 @@ export default function Home() {
       <div className="sparkles" aria-hidden="true">✦　·　✧　·　✦</div>
       {screen === "landing" ? (
         <section className="hero">
-          <p className="eyebrow">THE INTERNET&apos;S MOST HONEST IDLE RPG</p>
           <div className="logo-wrap" aria-label="Horse Books dot Quest"><canvas id="logo" aria-hidden="true" /><span className="sr-only">Horse Books dot Quest</span></div>
-          <p className="tagline">Choose a Horse. Choose Books. Let them resolve their differences.</p>
+          <p className="tagline">Choose Horses. Choose Books.<br />Let them resolve their differences.</p>
           <button className="begin" onClick={() => setScreen("choose")} type="button">
             <span className="button-shine" aria-hidden="true" />
-            <span>BEGIN</span><small>YOU CANNOT UNBEGIN</small>
+            <span>BEGIN</span>
           </button>
-          <p className="fine-print">NO HORSES OR BOOKS WERE GIVEN A FAIR CHANCE.</p>
         </section>
       ) : screen === "choose" ? (
         <section className="choice-screen" aria-labelledby="choice-title">
           <header className="choice-header">
             <p>CHOOSE A CHARACTER</p>
-            <h1 id="choice-title">WHO SHALL YOU IDLE?</h1>
           </header>
           <div className="choice-grid">
             <button className="choice choice-horse" type="button" onClick={() => chooseCharacter("HORSE")} aria-label="Choose Horse">
               <span className="choice-emoji" aria-hidden="true">🐴</span><span className="choice-name">HORSE</span><small>BIG ANIMAL</small>
             </button>
             <button className="choice choice-books" type="button" onClick={() => chooseCharacter("BOOKS")} aria-label="Choose Books">
-              <span className="choice-emoji" aria-hidden="true">📚</span><span className="choice-name">BOOKS</span><small>MANY PAPERS</small>
+              <span className="choice-emoji" aria-hidden="true">📚</span><span className="choice-name">BOOKS</span><small>MANY PAGES</small>
             </button>
           </div>
-          <p className="choice-note">THIS DECISION IS FINAL, EXCEPT IT IS NOT SAVED ANYWHERE.</p>
+          <p className="choice-note">This decision is final and greatly influences the rest of the game.</p>
         </section>
       ) : screen === "game" ? (
         <section className="play-screen" aria-labelledby="character-title">
@@ -275,7 +272,6 @@ export default function Home() {
                 })}
               </div>
               <h1 id="character-title">{character}</h1>
-              <p>{character === "HORSE" ? "BIG ANIMAL. LITTLE THOUGHT." : "MANY PAPERS. NO LEGS."}</p>
             </div>
             <div className="game-gauges">
               <div className="power-panel" aria-label={`Power ${roundedPower}`}>
@@ -285,7 +281,7 @@ export default function Home() {
               </div>
               <div className="companion-panel" aria-label={`${companions} ${companionLabel}`}>
                 <div><span>{companionLabel}</span><strong>{companions}</strong></div>
-                <small>{companions === 0 ? "NO AUTOMATIC POWER. SAD." : `+${companions} POWER EVERY 5 SECONDS.`}</small>
+                <small>{companions === 0 ? "You need some of these to fight." : `+${companions} POWER EVERY 5 SECONDS.`}</small>
               </div>
             </div>
           </div>
