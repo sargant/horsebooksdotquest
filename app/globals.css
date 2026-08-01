@@ -44,7 +44,7 @@ body { min-width: 320px; min-height: 100%; margin: 0; overflow-x: hidden; overfl
 @media (min-width: 900px) {
   .play-screen { width:min(1180px,100%); gap:1.35rem; }
   .game-top-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:stretch; gap:1.35rem; width:100%; }
-  .game-gauges { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:1rem; min-width:0; }
+  .game-gauges { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto; gap:1rem; min-width:0; }
   .game-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); align-items:stretch; gap:1rem; width:100%; }
   .character-card, .power-panel, .companion-panel, .more-button, .recruit-button, .fight-button { width:100%; }
   .character-card { display:flex; flex-direction:column; justify-content:center; }
