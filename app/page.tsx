@@ -60,16 +60,20 @@ type Character = "HORSE" | "BOOKS";
 type SavedGame = { character: Character; power: number; companions: number };
 type FightResult = { opponentCount: number; playerCount: number; winner: "player" | "opponent" | "draw"; reason: string };
 const saveKey = "horsebooks.quest.save.v1";
-const armyPositions = [
-  { left: "9%", top: "20%" },
-  { left: "77%", top: "13%" },
-  { left: "3%", top: "58%" },
-  { left: "85%", top: "58%" },
-  { left: "19%", top: "2%" },
-  { left: "67%", top: "1%" },
-  { left: "14%", top: "70%" },
-  { left: "74%", top: "70%" },
-];
+// Stable pseudo-random positions: each extra unit gets its own place rather than
+// being quietly forced into an eight-space formation once the army gets silly.
+function armyPosition(index: number) {
+  const random = (salt: number) => {
+    const value = Math.sin((index + 1) * 12.9898 + salt * 78.233) * 43758.5453;
+    return value - Math.floor(value);
+  };
+
+  return {
+    left: `${-8 + random(1) * 101}%`,
+    top: `${2 + random(2) * 72}%`,
+    delay: `${-(random(3) * 4.5)}s`,
+  };
+}
 
 export default function Home() {
   const [screen, setScreen] = useState<"landing" | "choose" | "game" | "result">("landing");
@@ -258,11 +262,11 @@ export default function Home() {
               <div className="character-army" aria-hidden="true">
                 <span className="character-emoji">{characterEmoji}</span>
                 {Array.from({ length: Math.max(0, companions - 1) }, (_, index) => {
-                  const position = armyPositions[index % armyPositions.length];
+                  const position = armyPosition(index);
                   return (
                     <span
                       className="army-member"
-                      style={{ left: position.left, top: position.top, animationDelay: `${-index * 0.57}s` }}
+                      style={{ left: position.left, top: position.top, animationDelay: position.delay }}
                       key={index}
                     >
                       {characterEmoji}
