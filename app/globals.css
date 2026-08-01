@@ -21,3 +21,9 @@ html, body { margin: 0; min-width: 320px; overflow: hidden; background: #142622;
 
 /* The bar is not equipped to deal with success. */
 .power-meter { overflow: visible; }
+
+/* The game is now brave enough to employ the thing you chose. */
+.companion-panel { width:min(100%,480px); padding:.65rem .9rem; border:4px solid #d9d2a2; background:rgba(22,48,34,.93); box-shadow:inset 0 0 0 4px #38563d,5px 6px 0 #14291e; color:#fff1bc; }.companion-panel div { display:flex; justify-content:space-between; font-size:clamp(.9rem,2.1vw,1.3rem); font-weight:bold; letter-spacing:.12em; }.companion-panel strong { color:#ffe557; font-size:1.3em; }.companion-panel small { display:block; margin-top:.25rem; color:#e8d8a7; font-size:clamp(.45rem,1vw,.62rem); font-weight:bold; letter-spacing:.09em; }
+.recruit-button { width:min(100%,480px); padding:clamp(1rem,2.8vh,1.55rem) 1.2rem; cursor:pointer; border:6px solid #ffe557; color:#fff9df; font-family:"Courier New",monospace; font-weight:bold; text-shadow:3px 3px #254230; box-shadow:inset 0 0 0 5px rgba(28,48,35,.7),9px 10px 0 #14291e; transition:transform .12s,box-shadow .12s,filter .12s; animation:recruit-flicker 1.3s steps(2,end) infinite; }.recruit-button span { display:block; font-size:clamp(1.4rem,4.5vw,3.2rem); letter-spacing:.09em; }.recruit-button small { display:block; margin-top:.4rem; color:#ffedb0; font-size:clamp(.5rem,1.1vw,.72rem); letter-spacing:.18em; }.recruit-button:hover { transform:translate(-4px,-5px); box-shadow:inset 0 0 0 5px rgba(28,48,35,.7),14px 15px 0 #14291e; filter:brightness(1.12); }.recruit-button:active { transform:translate(5px,6px); box-shadow:inset 0 0 0 5px rgba(28,48,35,.7),4px 4px 0 #14291e; }
+.unit-pop { color:#fff4cb; font:900 clamp(1.3rem,4vw,2.8rem)/.9 "Courier New",monospace; letter-spacing:.04em; -webkit-text-stroke:2px #38563d; text-shadow:4px 4px 0 #14291e; }
+@keyframes recruit-flicker { 50%{filter:brightness(1.18)} }
