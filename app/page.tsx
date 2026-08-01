@@ -253,55 +253,61 @@ export default function Home() {
       ) : screen === "game" ? (
         <section className="play-screen" aria-labelledby="character-title">
           <p className="play-kicker">YOUR CHOSEN CHARACTER</p>
-          <div className="character-card">
-            <div className="character-army" aria-hidden="true">
-              <span className="character-emoji">{characterEmoji}</span>
-              {Array.from({ length: Math.max(0, companions - 1) }, (_, index) => {
-                const position = armyPositions[index % armyPositions.length];
-                return (
-                  <span
-                    className="army-member"
-                    style={{ left: position.left, top: position.top, animationDelay: `${-index * 0.57}s` }}
-                    key={index}
-                  >
-                    {characterEmoji}
-                  </span>
-                );
-              })}
+          <div className="game-top-row">
+            <div className="character-card">
+              <div className="character-army" aria-hidden="true">
+                <span className="character-emoji">{characterEmoji}</span>
+                {Array.from({ length: Math.max(0, companions - 1) }, (_, index) => {
+                  const position = armyPositions[index % armyPositions.length];
+                  return (
+                    <span
+                      className="army-member"
+                      style={{ left: position.left, top: position.top, animationDelay: `${-index * 0.57}s` }}
+                      key={index}
+                    >
+                      {characterEmoji}
+                    </span>
+                  );
+                })}
+              </div>
+              <h1 id="character-title">{character}</h1>
+              <p>{character === "HORSE" ? "BIG ANIMAL. LITTLE THOUGHT." : "MANY PAPERS. NO LEGS."}</p>
             </div>
-            <h1 id="character-title">{character}</h1>
-            <p>{character === "HORSE" ? "BIG ANIMAL. LITTLE THOUGHT." : "MANY PAPERS. NO LEGS."}</p>
+            <div className="game-gauges">
+              <div className="power-panel" aria-label={`Power ${roundedPower}`}>
+                <div className="power-heading"><span>POWER</span><strong>{roundedPower}</strong></div>
+                <div className="power-meter"><div className="power-fill" style={{ width: `${meterWidth}%` }} /></div>
+                <small>{power < 100 ? "MORE IS ALWAYS BETTER." : "POWER IS NOW CONCERNING."}</small>
+              </div>
+              <div className="companion-panel" aria-label={`${companions} ${companionLabel}`}>
+                <div><span>{companionLabel}</span><strong>{companions}</strong></div>
+                <small>{companions === 0 ? "NO AUTOMATIC POWER. SAD." : `+${companions} POWER EVERY 5 SECONDS.`}</small>
+              </div>
+            </div>
           </div>
-          <div className="power-panel" aria-label={`Power ${roundedPower}`}>
-            <div className="power-heading"><span>POWER</span><strong>{roundedPower}</strong></div>
-            <div className="power-meter"><div className="power-fill" style={{ width: `${meterWidth}%` }} /></div>
-            <small>{power < 100 ? "MORE IS ALWAYS BETTER." : "POWER IS NOW CONCERNING."}</small>
+          <div className="game-actions">
+            <button className={`more-button ${character === "HORSE" ? "more-horse" : "more-books"}`} type="button" onClick={collect} aria-label={`Increase ${character.toLowerCase()} power`}>
+              <span>{moreLabel}</span><small>FOR {character === "HORSE" ? "HORSES" : "BOOKS"}</small>
+            </button>
+            <button
+              className={`recruit-button ${character === "HORSE" ? "more-horse" : "more-books"}`}
+              type="button"
+              onClick={recruitCompanion}
+              disabled={!recruitAvailable}
+              aria-label={recruitAvailable ? `${recruitLabel}, costs 50 power` : `${recruitLabel} locked: requires 50 power`}
+            >
+              <span>{recruitLabel}</span><small>COSTS 50 POWER · MAKES POWER ITSELF</small>
+            </button>
+            <button
+              className="fight-button"
+              type="button"
+              onClick={goToWar}
+              disabled={!canFight}
+              aria-label={canFight ? `Fight ${opponentLabel.toLowerCase()}` : `Fight ${opponentLabel.toLowerCase()} locked: requires more than one entity`}
+            >
+              <span>FIGHT {opponentLabel}</span><small>GO TO WAR</small>
+            </button>
           </div>
-          <div className="companion-panel" aria-label={`${companions} ${companionLabel}`}>
-            <div><span>{companionLabel}</span><strong>{companions}</strong></div>
-            <small>{companions === 0 ? "NO AUTOMATIC POWER. SAD." : `+${companions} POWER EVERY 5 SECONDS.`}</small>
-          </div>
-          <button className={`more-button ${character === "HORSE" ? "more-horse" : "more-books"}`} type="button" onClick={collect} aria-label={`Increase ${character.toLowerCase()} power`}>
-            <span>{moreLabel}</span><small>FOR {character === "HORSE" ? "HORSES" : "BOOKS"}</small>
-          </button>
-          <button
-            className={`recruit-button ${character === "HORSE" ? "more-horse" : "more-books"}`}
-            type="button"
-            onClick={recruitCompanion}
-            disabled={!recruitAvailable}
-            aria-label={recruitAvailable ? `${recruitLabel}, costs 50 power` : `${recruitLabel} locked: requires 50 power`}
-          >
-            <span>{recruitLabel}</span><small>COSTS 50 POWER · MAKES POWER ITSELF</small>
-          </button>
-          <button
-            className="fight-button"
-            type="button"
-            onClick={goToWar}
-            disabled={!canFight}
-            aria-label={canFight ? `Fight ${opponentLabel.toLowerCase()}` : `Fight ${opponentLabel.toLowerCase()} locked: requires more than one entity`}
-          >
-            <span>FIGHT {opponentLabel}</span><small>GO TO WAR</small>
-          </button>
         </section>
       ) : (
         <section className="result-screen" aria-labelledby="result-title">
