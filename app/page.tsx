@@ -57,6 +57,8 @@ function drawLogo(canvas: HTMLCanvasElement) {
 
 type Reward = { id: number; label: string; x: number; y: number; kind?: "loot" | "unit" };
 type Character = "HORSE" | "BOOKS";
+type SavedGame = { character: Character; power: number; companions: number };
+const saveKey = "horsebooks.quest.save.v1";
 
 export default function Home() {
   const [screen, setScreen] = useState<"landing" | "choose" | "game">("landing");
@@ -64,12 +66,44 @@ export default function Home() {
   const [power, setPower] = useState(0);
   const [companions, setCompanions] = useState(0);
   const [rewards, setRewards] = useState<Reward[]>([]);
+  const [hasLoadedSave, setHasLoadedSave] = useState(false);
   const lastProductionTick = useRef<number | null>(null);
+  const lastSavedAt = useRef(0);
 
   useEffect(() => {
     const canvas = document.querySelector<HTMLCanvasElement>("#logo");
     if (canvas) drawLogo(canvas);
   }, []);
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(saveKey);
+      if (saved) {
+        const game = JSON.parse(saved) as Partial<SavedGame>;
+        if ((game.character === "HORSE" || game.character === "BOOKS") && typeof game.power === "number" && typeof game.companions === "number") {
+          setCharacter(game.character);
+          setPower(Math.max(0, game.power));
+          setCompanions(Math.max(0, Math.floor(game.companions)));
+          setScreen("game");
+        }
+      }
+    } catch {
+      // A corrupt save is merely an unexpected new beginning.
+    }
+    setHasLoadedSave(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedSave || !character) return;
+    const now = Date.now();
+    if (now - lastSavedAt.current < 1000) return;
+    try {
+      window.localStorage.setItem(saveKey, JSON.stringify({ character, power, companions }));
+      lastSavedAt.current = now;
+    } catch {
+      // The game remains playable if this browser declines to keep the evidence.
+    }
+  }, [character, companions, hasLoadedSave, power]);
 
   function chooseCharacter(side: Character) {
     setCharacter(side);
@@ -123,7 +157,7 @@ export default function Home() {
   }
 
   const characterEmoji = character === "HORSE" ? "🐴" : "📚";
-  const moreLabel = character === "HORSE" ? "MORE HORSE" : "MORE BOOKS";
+  const moreLabel = "MORE POWER";
   const companionLabel = character === "HORSE" ? "HORSES" : "BOOKS";
   const recruitLabel = character === "HORSE" ? "GET HORSE" : "GET BOOK";
   const roundedPower = Math.floor(power);
@@ -180,8 +214,8 @@ export default function Home() {
             <div><span>{companionLabel}</span><strong>{companions}</strong></div>
             <small>{companions === 0 ? "NO AUTOMATIC POWER. SAD." : `+${companions} POWER EVERY 5 SECONDS.`}</small>
           </div>
-          <button className={`more-button ${character === "HORSE" ? "more-horse" : "more-books"}`} type="button" onClick={collect} aria-label={`Add more ${character.toLowerCase()} and increase power`}>
-            <span>{moreLabel}</span><small>INCREASE POWER</small>
+          <button className={`more-button ${character === "HORSE" ? "more-horse" : "more-books"}`} type="button" onClick={collect} aria-label={`Increase ${character.toLowerCase()} power`}>
+            <span>{moreLabel}</span><small>VIA {character}</small>
           </button>
           <button
             className={`recruit-button ${character === "HORSE" ? "more-horse" : "more-books"}`}
