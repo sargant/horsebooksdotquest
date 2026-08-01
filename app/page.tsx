@@ -245,6 +245,12 @@ export default function Home() {
           <p className="play-kicker">YOUR CHOSEN CHARACTER</p>
           <div className="character-card">
             <span className="character-emoji" aria-hidden="true">{characterEmoji}</span>
+            {companions > 1 && (
+              <span className="character-miasma" aria-hidden="true">
+                <span className="miasma-haze" />
+                <span className="miasma-emoji">{characterEmoji}</span>
+              </span>
+            )}
             <h1 id="character-title">{character}</h1>
             <p>{character === "HORSE" ? "BIG ANIMAL. LITTLE THOUGHT." : "MANY PAPERS. NO LEGS."}</p>
           </div>
@@ -258,7 +264,7 @@ export default function Home() {
             <small>{companions === 0 ? "NO AUTOMATIC POWER. SAD." : `+${companions} POWER EVERY 5 SECONDS.`}</small>
           </div>
           <button className={`more-button ${character === "HORSE" ? "more-horse" : "more-books"}`} type="button" onClick={collect} aria-label={`Increase ${character.toLowerCase()} power`}>
-            <span>{moreLabel}</span><small>VIA {character}</small>
+            <span>{moreLabel}</span><small>FOR ENTITY</small>
           </button>
           <button
             className={`recruit-button ${character === "HORSE" ? "more-horse" : "more-books"}`}
