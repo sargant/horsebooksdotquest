@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const glyphs: Record<string, string[]> = {
   A: ["01110", "10001", "10001", "11111", "10001", "10001", "10001"],
@@ -55,14 +55,16 @@ function drawLogo(canvas: HTMLCanvasElement) {
   });
 }
 
-type Reward = { id: number; label: string; x: number; y: number; kind?: "loot" };
+type Reward = { id: number; label: string; x: number; y: number; kind?: "loot" | "unit" };
 type Character = "HORSE" | "BOOKS";
 
 export default function Home() {
   const [screen, setScreen] = useState<"landing" | "choose" | "game">("landing");
   const [character, setCharacter] = useState<Character | null>(null);
   const [power, setPower] = useState(0);
+  const [companions, setCompanions] = useState(0);
   const [rewards, setRewards] = useState<Reward[]>([]);
+  const lastProductionTick = useRef<number | null>(null);
 
   useEffect(() => {
     const canvas = document.querySelector<HTMLCanvasElement>("#logo");
@@ -72,8 +74,27 @@ export default function Home() {
   function chooseCharacter(side: Character) {
     setCharacter(side);
     setPower(0);
+    setCompanions(0);
     setScreen("game");
   }
+
+  useEffect(() => {
+    if (screen !== "game" || companions === 0) {
+      lastProductionTick.current = null;
+      return;
+    }
+
+    lastProductionTick.current = performance.now();
+    const timer = window.setInterval(() => {
+      const now = performance.now();
+      const previous = lastProductionTick.current ?? now;
+      lastProductionTick.current = now;
+      // One companion produces one POWER every five seconds, in tiny satisfying-ish drips.
+      setPower((current) => current + (companions * (now - previous)) / 5000);
+    }, 100);
+
+    return () => window.clearInterval(timer);
+  }, [screen, companions]);
 
   function collect() {
     if (!character) return;
@@ -91,8 +112,22 @@ export default function Home() {
     window.setTimeout(() => setRewards((current) => current.filter((reward) => reward.id !== id && reward.id !== id + 1)), 1250);
   }
 
+  function recruitCompanion() {
+    if (!character || power < 50) return;
+    const id = Date.now();
+    const companionName = character === "HORSE" ? "HORSE" : "BOOK";
+    setPower((current) => current - 50);
+    setCompanions((current) => current + 1);
+    setRewards((current) => [...current, { id, label: `+1 ${companionName}`, x: 50, y: 52, kind: "unit" }]);
+    window.setTimeout(() => setRewards((current) => current.filter((reward) => reward.id !== id)), 1250);
+  }
+
   const characterEmoji = character === "HORSE" ? "🐴" : "📚";
   const moreLabel = character === "HORSE" ? "MORE HORSE" : "MORE BOOKS";
+  const companionLabel = character === "HORSE" ? "HORSES" : "BOOKS";
+  const recruitLabel = character === "HORSE" ? "GET HORSE" : "GET BOOK";
+  const roundedPower = Math.floor(power);
+  const recruitAvailable = power >= 50;
   // Deliberately do not cap this. More than 100 POWER is allowed to escape.
   const meterWidth = power;
 
@@ -136,18 +171,25 @@ export default function Home() {
             <h1 id="character-title">{character}</h1>
             <p>{character === "HORSE" ? "BIG ANIMAL. LITTLE THOUGHT." : "MANY PAPERS. NO LEGS."}</p>
           </div>
-          <div className="power-panel" aria-label={`Power ${power}`}>
-            <div className="power-heading"><span>POWER</span><strong>{power}</strong></div>
+          <div className="power-panel" aria-label={`Power ${roundedPower}`}>
+            <div className="power-heading"><span>POWER</span><strong>{roundedPower}</strong></div>
             <div className="power-meter"><div className="power-fill" style={{ width: `${meterWidth}%` }} /></div>
             <small>{power < 100 ? "MORE IS ALWAYS BETTER." : "POWER IS NOW CONCERNING."}</small>
+          </div>
+          <div className="companion-panel" aria-label={`${companions} ${companionLabel}`}>
+            <div><span>{companionLabel}</span><strong>{companions}</strong></div>
+            <small>{companions === 0 ? "NO AUTOMATIC POWER. SAD." : `+${companions} POWER EVERY 5 SECONDS.`}</small>
           </div>
           <button className={`more-button ${character === "HORSE" ? "more-horse" : "more-books"}`} type="button" onClick={collect} aria-label={`Add more ${character.toLowerCase()} and increase power`}>
             <span>{moreLabel}</span><small>INCREASE POWER</small>
           </button>
+          {recruitAvailable && <button className={`recruit-button ${character === "HORSE" ? "more-horse" : "more-books"}`} type="button" onClick={recruitCompanion}>
+            <span>{recruitLabel}</span><small>COSTS 50 POWER · MAKES POWER ITSELF</small>
+          </button>}
         </section>
       )}
       <div className="reward-layer" aria-live="polite" aria-atomic="true">
-        {rewards.map((reward) => <span className={`reward-pop ${reward.kind === "loot" ? "loot-pop" : "credit-pop"}`} key={reward.id} style={{ left: `${reward.x}%`, top: `${reward.y}%` }}>{reward.label}</span>)}
+        {rewards.map((reward) => <span className={`reward-pop ${reward.kind === "loot" ? "loot-pop" : reward.kind === "unit" ? "unit-pop" : "credit-pop"}`} key={reward.id} style={{ left: `${reward.x}%`, top: `${reward.y}%` }}>{reward.label}</span>)}
       </div>
       <div className="ground" aria-hidden="true"><span className="tuft tuft-a">♠</span><span className="tuft tuft-b">♠</span><span className="tuft tuft-c">♠</span><span className="rock">◆</span><span className="daisy">✦</span></div>
     </main>
